@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "start": "nodemon index.js"
+    "preinstall": "npm rebuild better-sqlite3 --update-binary",
+    "start": "node index.js"
   },
   "keywords": [],
   "author": "",
