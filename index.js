@@ -2,6 +2,20 @@ require('dotenv').config();
 const { Bot, Keyboard } = require('grammy');
 const Database = require('better-sqlite3');
 const fs = require('fs');
+const express = require('express');
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+// Фиктивный роут для проверки
+app.get('/', (req, res) => {
+  res.send('Bot is alive');
+});
+
+// Запуск сервера
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`Server is running on port ${PORT}`);
+});
+
 
 // Загрузка данных из JSON
 const dbData = JSON.parse(fs.readFileSync('taxi.json', 'utf8'));
