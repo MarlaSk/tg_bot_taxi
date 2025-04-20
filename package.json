@@ -1,0 +1,18 @@
+{
+  "name": "tariffbot",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "start": "nodemon index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "better-sqlite3": "^11.9.1",
+    "dotenv": "^16.5.0",
+    "grammy": "^1.36.0",
+    "nodemon": "^3.1.9"
+  }
+}
