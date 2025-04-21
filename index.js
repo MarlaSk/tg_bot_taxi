@@ -198,33 +198,52 @@ bot.hears("🚖 Рассчитать стоимость", async (ctx) => {
 });
 // Функция для нормализации адреса
 function normalizeAddress(address) {
+  // Удаляем только номера домов в конце строки (например "60 лет 20" -> "60 лет")
   return address
-    .replace(/\d+\s*[а-яa-z]?(\s*\/\s*\d+[а-яa-z]?)?/gi, '')
+    .replace(/(\s+\d+\s*[а-яa-z]?(\s*\/\s*\d+[а-яa-z]?)?)$/gi, '') // Удаляем только номер дома в конце
     .replace(/[,\.]/g, '')
     .trim()
     .toLowerCase();
 }
 
-// Функция поиска района по адресу
 function findDistrict(address) {
-  // Сначала проверяем полный адрес
+  const lowerAddress = address.toLowerCase();
+  
+  // 1. Сначала проверяем полное точное совпадение
   const exactMatch = db.prepare(`
     SELECT name FROM districts 
-    WHERE keywords LIKE '%' || ? || '%'
+    WHERE ? LIKE '%' || keywords || '%' OR keywords LIKE '%' || ? || '%'
     LIMIT 1
-  `).get(address.toLowerCase());
+  `).get(lowerAddress, lowerAddress);
 
   if (exactMatch) return exactMatch;
 
-  // Затем проверяем нормализованный адрес (без номера дома)
+  // 2. Затем проверяем нормализованный адрес (без номера дома)
   const normalized = normalizeAddress(address);
-  return db.prepare(`
-    SELECT name FROM districts 
-    WHERE keywords LIKE '%' || ? || '%'
-    LIMIT 1
-  `).get(normalized);
-}
+  if (normalized !== lowerAddress) { // Если нормализация изменила адрес
+    const normalizedMatch = db.prepare(`
+      SELECT name FROM districts 
+      WHERE ? LIKE '%' || keywords || '%' OR keywords LIKE '%' || ? || '%'
+      LIMIT 1
+    `).get(normalized, normalized);
+    
+    if (normalizedMatch) return normalizedMatch;
+  }
 
+  // 3. Если не нашли, попробуем разбить на слова и искать по частям
+  const words = normalized.split(/\s+/).filter(word => word.length > 2);
+  for (const word of words) {
+    const wordMatch = db.prepare(`
+      SELECT name FROM districts 
+      WHERE keywords LIKE '%' || ? || '%'
+      LIMIT 1
+    `).get(word);
+    
+    if (wordMatch) return wordMatch;
+  }
+
+  return null;
+}
 // Функция получения фиксированной цены
 function getFixedPrice(fromDistrict, toDistrict) {
   // Проверяем прямое направление
