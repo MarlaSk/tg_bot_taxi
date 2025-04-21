@@ -192,11 +192,12 @@ bot.hears("🌍 Межгород", async (ctx) => {
 bot.hears("🚖 Рассчитать стоимость", async (ctx) => {
   userSessions.set(ctx.from.id, { step: 'waiting_from' });
   await ctx.reply(`🚖 Введите начальный адрес (например: "Ленина 15" или "Микрорайон"):\n
-(Желательно не использовать номера дома в конце улиц)`, {
+(номер сада писать без пробела!)`, {
     reply_markup: { remove_keyboard: true } // Убираем клавиатуру при вводе адреса
   });
 });
 // Функция для нормализации адреса
+// Улучшенная функция для нормализации адреса
 function normalizeAddress(address) {
   // Удаляем только номера домов в конце строки (например "60 лет 20" -> "60 лет")
   return address
@@ -206,6 +207,7 @@ function normalizeAddress(address) {
     .toLowerCase();
 }
 
+// Улучшенная функция поиска района по адресу
 function findDistrict(address) {
   const lowerAddress = address.toLowerCase();
   
@@ -230,7 +232,7 @@ function findDistrict(address) {
     if (normalizedMatch) return normalizedMatch;
   }
 
-  // 3. Если не нашли, попробуем разбить на слова и искать по частям
+  //3. Если не нашли, попробуем разбить на слова и искать по частям
   const words = normalized.split(/\s+/).filter(word => word.length > 2);
   for (const word of words) {
     const wordMatch = db.prepare(`
@@ -242,8 +244,9 @@ function findDistrict(address) {
     if (wordMatch) return wordMatch;
   }
 
-  return null;
+   return null;
 }
+
 // Функция получения фиксированной цены
 function getFixedPrice(fromDistrict, toDistrict) {
   // Проверяем прямое направление
